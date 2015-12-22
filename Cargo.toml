@@ -1,0 +1,32 @@
+[project]
+name = "dbagg"
+version = "0.0.1"
+authors = ["Takehiro Iyatomi<iyatomi@gmail.com>"]
+build = "src/build.rs"
+
+[dependencies]
+serde = "*"
+serde_json = "*"
+serde_macros = { version = "*", optional = true }
+google-script1 = "*"
+postgres = "0.10"
+hyper = "*"
+yup-oauth2 = "*"
+getopts = "*"
+open = "*"
+time = "*"
+regex = "0.1"
+
+[features]
+default = ["with_syntex"]
+nightly = ["serde_macros"]
+with_syntex = ["serde_codegen", "syntex"]
+
+[build-dependencies]
+syntex = { version = "*", optional = true }
+serde_codegen = { version = "*", optional = true }
+
+[dev-dependencies]
+getopts = "*"
+open = "*"
+yup-hyper-mock = ">= 1.0.0"

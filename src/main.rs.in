@@ -1,0 +1,90 @@
+extern crate serde;
+extern crate serde_json;
+extern crate getopts;
+
+use getopts::Options;
+use std::env;
+use std::fs::File;
+
+mod auth;
+mod script;
+mod importer;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Config {
+    psql_user: String,
+    psql_host: String,
+    psql_port: u32,
+    sqldir: String,
+    oauth_id: String,
+    oauth_secret: String,
+    script_id: String,
+    func_name: String,
+    tokenfile: String,
+    spreadsheet_url: String,
+}
+
+const DEFAULT_SETTINGS: &'static str = "settings.json";
+
+fn main() {
+    //get args
+    let args: Vec<String> = env::args().collect();
+
+    //parse options
+    let mut opts = Options::new();
+    opts.optopt("c", "", "JSON file path which contains configuration", "JSONFILE");    
+    let matches = opts.parse(&args[1..]).unwrap();
+    let path = matches.opt_str("c").unwrap_or_else(|| DEFAULT_SETTINGS.to_string());
+
+    //get config object
+    let f = File::open(path.as_str()).unwrap();
+    let config: Config = serde_json::from_reader(f).unwrap();
+
+    let func = config.func_name.clone();
+    let script_id = config.script_id.clone();
+    let params = vec![config.spreadsheet_url.clone()];
+    let runner = script::Runner::new(config);
+    //invoke request and receive result
+    println!("run script {} {}", script_id, func);
+    match runner.run(script_id.as_str(), Some(func), Some(params), None) {
+        Err(e) => println!("{}", e),
+        Ok(res) => println!("Success: {:?}", res),
+    }
+}
+
+/*
+extern crate hyper;
+extern crate yup_oauth2 as oauth2;
+extern crate serde;
+extern crate serde_json;
+ 
+use oauth2::{Authenticator, DefaultAuthenticatorDelegate, PollInformation, ConsoleApplicationSecret, MemoryStorage, GetToken};
+use serde_json as json;
+use std::default::Default;
+
+fn main() {
+    let secret = oauth2::ApplicationSecret {
+                client_id: "160446834422-6jb0lbo92g44hg2qe9nk1fesqfctoki1.apps.googleusercontent.com".to_string(),
+                client_secret: "TdOknC4AP9QxonN1n4gJv-YE".to_string(),
+                token_uri: Default::default(),
+                auth_uri: Default::default(),
+                redirect_uris: Default::default(),
+                client_email: None,
+                auth_provider_x509_cert_url: None,
+                client_x509_cert_url: None
+            };  
+    let res = Authenticator::new(&secret, DefaultAuthenticatorDelegate,
+                            hyper::Client::new(),
+                            <MemoryStorage as Default>::default(), None)
+                            .token(&["https://www.googleapis.com/auth/drive"]);
+    match res {
+        Ok(t) => {
+        // now you can use t.access_token to authenticate API calls within your
+        // given scopes. It will not be valid forever, which is when you have to 
+        // refresh it using the `RefreshFlow`
+        println!("token: {}", t.access_token);
+        },
+        Err(err) => println!("Failed to acquire token: {}", err),
+    }
+}
+*/
