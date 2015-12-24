@@ -73,7 +73,7 @@ impl oauth2::TokenStorage for FileStorage {
 		let scope_key = scope_hash.to_string();
 		match self.tokens.get(&scope_key) {
 			Some(t) => {
-				println!("data for scope_hash {} found", scope_key);
+				//println!("data for scope_hash {} found", scope_key);
 				Ok(Some(t.clone()))
 			},
             None => Ok(None),			

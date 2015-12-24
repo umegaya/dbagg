@@ -22,6 +22,7 @@ pub struct Config {
     func_name: String,
     tokenfile: String,
     spreadsheet_url: String,
+    exec_latest: bool,
 }
 
 const DEFAULT_SETTINGS: &'static str = "settings.json";
@@ -40,43 +41,5 @@ fn main() {
     let f = File::open(path.as_str()).unwrap();
     let config: Config = serde_json::from_reader(f).unwrap();
 
-    importer::Importer::new(config).unwrap()
-        .run().unwrap();
+    importer::Importer::new(config).unwrap().run().unwrap();
 }
-
-/*
-extern crate hyper;
-extern crate yup_oauth2 as oauth2;
-extern crate serde;
-extern crate serde_json;
- 
-use oauth2::{Authenticator, DefaultAuthenticatorDelegate, PollInformation, ConsoleApplicationSecret, MemoryStorage, GetToken};
-use serde_json as json;
-use std::default::Default;
-
-fn main() {
-    let secret = oauth2::ApplicationSecret {
-                client_id: "160446834422-6jb0lbo92g44hg2qe9nk1fesqfctoki1.apps.googleusercontent.com".to_string(),
-                client_secret: "TdOknC4AP9QxonN1n4gJv-YE".to_string(),
-                token_uri: Default::default(),
-                auth_uri: Default::default(),
-                redirect_uris: Default::default(),
-                client_email: None,
-                auth_provider_x509_cert_url: None,
-                client_x509_cert_url: None
-            };  
-    let res = Authenticator::new(&secret, DefaultAuthenticatorDelegate,
-                            hyper::Client::new(),
-                            <MemoryStorage as Default>::default(), None)
-                            .token(&["https://www.googleapis.com/auth/drive"]);
-    match res {
-        Ok(t) => {
-        // now you can use t.access_token to authenticate API calls within your
-        // given scopes. It will not be valid forever, which is when you have to 
-        // refresh it using the `RefreshFlow`
-        println!("token: {}", t.access_token);
-        },
-        Err(err) => println!("Failed to acquire token: {}", err),
-    }
-}
-*/

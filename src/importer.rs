@@ -1,7 +1,6 @@
 
 extern crate regex;
 
-use std::collections::HashMap;
 use std::default::Default;
 use std::io::{self, Read};
 use std::fmt;
@@ -81,7 +80,7 @@ impl Job {
 			sheet: Default::default(),
 		};
 		//parse sqlfile to get sheet name
-		let re = Regex::new("(.+?).sql$").unwrap();
+		let re = Regex::new(".*?([^/]+?).sql$").unwrap();
 		match re.captures(sqlfile) {
 			Some(c) => {
 				job.sheet = c.at(1).unwrap().to_string();
@@ -93,27 +92,28 @@ impl Job {
 		let mut f = try!(File::open(sqlfile));
 		let mut buf = String::new();
 		try!(f.read_to_string(&mut buf));
+		println!("sql: {}", buf);
 		job.sql = buf;
 		//init HashMap
 		Ok(job)
 	}
 
 	pub fn run(&self, imp: &Importer) -> Result<()> {
-		let mut record = HashMap::<String, String>::new();
+		let mut record = Vec::<Vec<String>>::new();
 		//query postgres to get record
 		let stmt = try!(imp.dbconn.prepare(self.sql.as_str()));
 		for row in try!(stmt.query(&[])) {
 			for col in row.columns() {
-				let col = col.name();
-				record.insert(col.to_string(), row.get(col));
+				let col = col.name().to_string();
+				record.push(vec![col.clone(), row.get::<_, i64>(col.as_str()).to_string()]);
 			}
 		}
 		//make request to spreadsheet through script object
 		let config = &imp.config;
 		let runner = script::Runner::new(config);
-		let recstr = try!(serde_json::to_string(&record));
-		let params = vec![config.spreadsheet_url.clone(), self.sheet.clone(), recstr];
-		match runner.run(config.script_id.as_str(), Some(config.func_name.clone()), Some(params), None) {
+		let data = try!(serde_json::to_string(&record));
+		let params = vec![config.spreadsheet_url.clone(), self.sheet.clone(), data];
+		match runner.run(config.script_id.as_str(), Some(config.func_name.clone()), Some(params), Some(config.exec_latest)) {
 			Err(e) => println!("Error: {}", e),
 			Ok(res) => println!("Success: {:?}", res),
 		}
