@@ -8,7 +8,7 @@ pub struct Runner {
 	hub: script1::Script<hyper::Client, auth::Authenticator>,
 }
 impl Runner {
-	pub fn new(c: Config) -> Runner {
+	pub fn new(c: &Config) -> Runner {
 	    //setup oauth2 and google app script instance
 	    let auth = auth::AuthenticatorFactory::create(c).unwrap();
 		return Runner {
@@ -24,6 +24,7 @@ impl Runner {
 	    	dev_mode: dev_mode,
 	    	session_state: None,
 	    };
+   		println!("run script {} {:?}", id, req.function);
 	    return self.hub.scripts().run(req, id).add_scope("https://www.googleapis.com/auth/spreadsheets").doit();
 	}
 }

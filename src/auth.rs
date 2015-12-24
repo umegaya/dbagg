@@ -1,8 +1,6 @@
 extern crate hyper;
 extern crate open;
 extern crate yup_oauth2 as oauth2;
-extern crate serde;
-extern crate serde_json;
 
 use std::default::Default;
 use std::collections::HashMap;
@@ -13,6 +11,9 @@ use std::fs::{File, OpenOptions};
 use std::fmt;
 use std::convert::From;
 use std::io::{self, Read, Write};
+
+use serde_json;
+
 use Config;
 
 //--------------------------------------------------
@@ -161,10 +162,10 @@ pub type Authenticator = oauth2::Authenticator<StdoutHandler, FileStorage, hyper
 
 pub struct AuthenticatorFactory;
 impl AuthenticatorFactory {
-	pub fn create(c: Config) -> Result<Authenticator, FileStorageError> {
+	pub fn create(c: &Config) -> Result<Authenticator, FileStorageError> {
 		let secret = oauth2::ApplicationSecret {
-	        client_id: c.oauth_id,
-	        client_secret: c.oauth_secret,
+	        client_id: c.oauth_id.clone(),
+	        client_secret: c.oauth_secret.clone(),
 	        token_uri: Default::default(),
 	        auth_uri: Default::default(),
 	        redirect_uris: Default::default(),
@@ -175,7 +176,7 @@ impl AuthenticatorFactory {
 	    let client = hyper::Client::new();
 	    let tokenfile: String;
 	    if c.tokenfile.len() > 0 { 
-	    	tokenfile = c.tokenfile;
+	    	tokenfile = c.tokenfile.clone();
 	    }
 	    else {
 	    	tokenfile = "./tokens.json".to_string();

@@ -16,10 +16,11 @@ getopts = "*"
 open = "*"
 time = "*"
 regex = "0.1"
+openssl = { version = "0.7.3", optional = true }
 
 [features]
-default = ["with_syntex"]
-nightly = ["serde_macros"]
+default = ["with_syntex", "openssl", "postgres/openssl"]
+nightly = ["serde_macros", "openssl", "postgres/openssl"]
 with_syntex = ["serde_codegen", "syntex"]
 
 [build-dependencies]
@@ -27,6 +28,4 @@ syntex = { version = "*", optional = true }
 serde_codegen = { version = "*", optional = true }
 
 [dev-dependencies]
-getopts = "*"
-open = "*"
 yup-hyper-mock = ">= 1.0.0"

@@ -1,6 +1,8 @@
 extern crate serde;
 extern crate serde_json;
 extern crate getopts;
+extern crate openssl;
+extern crate postgres;
 
 use getopts::Options;
 use std::env;
@@ -12,9 +14,7 @@ mod importer;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    psql_user: String,
-    psql_host: String,
-    psql_port: u32,
+    psql_url: String,
     sqldir: String,
     oauth_id: String,
     oauth_secret: String,
@@ -40,16 +40,8 @@ fn main() {
     let f = File::open(path.as_str()).unwrap();
     let config: Config = serde_json::from_reader(f).unwrap();
 
-    let func = config.func_name.clone();
-    let script_id = config.script_id.clone();
-    let params = vec![config.spreadsheet_url.clone()];
-    let runner = script::Runner::new(config);
-    //invoke request and receive result
-    println!("run script {} {}", script_id, func);
-    match runner.run(script_id.as_str(), Some(func), Some(params), None) {
-        Err(e) => println!("{}", e),
-        Ok(res) => println!("Success: {:?}", res),
-    }
+    importer::Importer::new(config).unwrap()
+        .run().unwrap();
 }
 
 /*
